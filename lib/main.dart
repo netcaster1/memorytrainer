@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vibration/vibration.dart';
 
 // void main() {
 //   runApp(const MaterialApp(
@@ -32,7 +33,7 @@ class MyApp extends StatelessWidget {
 }
 
 class StartPage extends StatelessWidget {
-  const StartPage({super.key});
+  const StartPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -61,32 +62,18 @@ class StartPage extends StatelessWidget {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const CircularProgressIndicator();
             } else {
-              final lastLevel = snapshot.data;
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  ElevatedButton(
-                    child: const Text('Start New Game'),
-                    onPressed: () => Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        fullscreenDialog: true,
-                        builder: (context) => const HomePage(level: 1),
-                      ),
+              final lastLevel = snapshot.data ?? 1;
+              return ListView.builder(
+                itemCount: lastLevel,
+                itemBuilder: (context, index) {
+                  int level = index + 1;
+                  return ListTile(
+                    title: ElevatedButton(
+                      child: Text(level == 1 ? 'Start New Game' : 'Start Level $level'),
+                      onPressed: () => _showConfirmDialog(context, level, lastLevel),
                     ),
-                  ),
-                  if (lastLevel != null && lastLevel > 1)
-                    ElevatedButton(
-                      child: Text('Continue from Level $lastLevel'),
-                      onPressed: () => Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          fullscreenDialog: true,
-                          builder: (context) => HomePage(level: lastLevel),
-                        ),
-                      ),
-                    ),
-                ],
+                  );
+                },
               );
             }
           },
@@ -98,6 +85,45 @@ class StartPage extends StatelessWidget {
   Future<int?> _getLastLevel() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getInt('level');
+  }
+
+  void _showConfirmDialog(BuildContext context, int level, int lastLevel) {
+    if (level < lastLevel) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Confirm Level Selection'),
+          content: Text('Are you sure you want to start from level $level? Your last level will be reset to $level.'),
+          actions: [
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.pop(context);
+                _startLevel(context, level);
+              },
+            ),
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      );
+    } else {
+      _startLevel(context, level);
+    }
+  }
+
+  void _startLevel(BuildContext context, int level) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (context) => HomePage(level: level),
+      ),
+    );
   }
 }
 
@@ -138,7 +164,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void startGame(int level) {
-    int numCount = 20 + 20 * (level - 1);
+    int numCount = 2 + 2 * (level - 1);
     originalNumbers = List<String>.generate(numCount, (index) {
       int randomNum = rng.nextInt(100);
       return randomNum < 10 ? '0$randomNum' : randomNum.toString();
@@ -351,6 +377,10 @@ class ResultsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
 
+    if (accuracyIsPerfect) {
+      Vibration.vibrate();
+    }
+    
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -377,7 +407,7 @@ class ResultsPage extends StatelessWidget {
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children:  <Widget>[
+            children: <Widget>[
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
