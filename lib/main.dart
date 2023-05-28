@@ -232,7 +232,7 @@ class _HomePageState extends State<HomePage> {
   // This method starts the game with the given level.
   void startGame(int level) {
     // Calculate the number of numbers to be displayed based on the level.
-    int numCount = 2 + 2 * (level - 1);
+    int numCount = 10 + 10 * (level - 1);
     // Generate a list of random numbers as strings and store them in originalNumbers.
     originalNumbers = List<String>.generate(numCount, (index) {
       int randomNum = rng.nextInt(100);
