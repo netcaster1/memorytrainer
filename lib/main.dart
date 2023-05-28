@@ -1,11 +1,10 @@
-// ignore_for_file: avoid_function_literals_in_foreach_calls
-
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vibration/vibration.dart';
+import 'dart:convert';
 
 void main() {
   runApp(const MyApp());
@@ -60,21 +59,26 @@ class StartPage extends StatelessWidget {
             fit: BoxFit.cover,
           ),
         ),
-        child: FutureBuilder<int?>(
-          future: _getLastLevel(),
+        child: FutureBuilder<Map<String, dynamic>>(
+          future: _getLevelDetails(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const CircularProgressIndicator(); // Show a loading indicator while waiting for the last level
             } else {
-              final lastLevel = snapshot.data ?? 1;
+              Map<String, dynamic> levelDetails = snapshot.data!;
               return ListView.builder(
-                itemCount: lastLevel,
+                itemCount: levelDetails.keys.length,
                 itemBuilder: (context, index) {
                   int level = index + 1;
+                  Duration bestTime = levelDetails[level.toString()] != null
+                      ? Duration(milliseconds: levelDetails[level.toString()])
+                      : const Duration();
                   return ListTile(
                     title: ElevatedButton(
-                      child: Text(level == 1 ? 'Start New Game' : 'Start Level $level'), // The button text
-                      onPressed: () => _showConfirmDialog(context, level, lastLevel),
+                      child: Text(level == 1
+                          ? 'Start New Game'
+                          : 'Start Level $level - Best Time: ${bestTime.inMinutes} min ${bestTime.inSeconds % 60} sec'),
+                      onPressed: () => _startLevel(context, level),
                     ),
                   );
                 },
@@ -86,41 +90,12 @@ class StartPage extends StatelessWidget {
     );
   }
 
-  // This method gets the last level played from SharedPreferences.
-  Future<int?> _getLastLevel() async {
+  // This method gets the last level played and best time from SharedPreferences.
+  Future<Map<String, dynamic>> _getLevelDetails() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getInt('level');
-  }
-
-  // This method shows a confirmation dialog if the selected level is not the last level played.
-  // If the selected level is the last level played, it starts the level directly.
-  void _showConfirmDialog(BuildContext context, int level, int lastLevel) {
-    if (level < lastLevel) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Confirm Level Selection'),
-          content: Text('Are you sure you want to start from level $level? Your last level will be reset to $level.'),
-          actions: [
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.pop(context);
-                _startLevel(context, level);
-              },
-            ),
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
-      );
-    } else {
-      _startLevel(context, level);
-    }
+    String levelDetailsStr = prefs.getString('levelDetails') ?? '{}';
+    Map<String, dynamic> levelDetails = jsonDecode(levelDetailsStr);
+    return levelDetails;
   }
 
   // This method starts the selected level.
@@ -182,14 +157,16 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     timer.cancel();
-    controllers.forEach((controller) => controller.dispose());
+    for (var controller in controllers) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
   // This method starts the game with the given level.
   void startGame(int level) {
     // Calculate the number of numbers to be displayed based on the level.
-    int numCount = 20 + 20 * (level - 1);
+    int numCount = 2 + 2 * (level - 1);
     // Generate a list of random numbers as strings and store them in originalNumbers.
     originalNumbers = List<String>.generate(numCount, (index) {
       int randomNum = rng.nextInt(100);
@@ -220,8 +197,6 @@ class _HomePageState extends State<HomePage> {
           IconButton(
             icon: const Icon(Icons.exit_to_app),
             onPressed: () async {
-              SharedPreferences prefs = await SharedPreferences.getInstance();
-              await prefs.setInt('level', level);
               SystemNavigator.pop();
             },
           ),
@@ -377,7 +352,9 @@ class _HomePageState extends State<HomePage> {
               ResultsPage(originalNumbers, userNumbers, stopwatch.elapsed, accuracy, accuracyIsPerfect, level),
         ),
       ).then((_) {
-        controllers.forEach((controller) => controller.clear());
+        for (var controller in controllers) {
+          controller.clear();
+        }
         inputEnabled = false;
         showUserInput = false;
         setState(() => level++);
@@ -420,7 +397,9 @@ class ResultsPage extends StatelessWidget {
 
     // If the user's input was perfect, vibrate the device.
     if (accuracyIsPerfect) {
-      Vibration.vibrate();
+      saveBestTime(level, timeElapsed).then((_) {
+        Vibration.vibrate();
+      });
     }
 
     return Scaffold(
@@ -431,9 +410,6 @@ class ResultsPage extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.exit_to_app),
             onPressed: () async {
-              // Save the user's progress and exit the app.
-              SharedPreferences prefs = await SharedPreferences.getInstance();
-              await prefs.setInt('level', accuracyIsPerfect ? level + 1 : level);
               SystemNavigator.pop();
             },
           ),
@@ -514,4 +490,27 @@ class ResultsPage extends StatelessWidget {
       ),
     );
   }
+}
+
+Future<void> saveBestTime(int level, Duration bestTime) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+
+  // Retrieve all the best times from shared preferences.
+  String? bestTimesJson = prefs.getString('bestTimes');
+  Map<String, dynamic> bestTimes = {};
+
+  // If there are best times saved, load them into the map.
+  if (bestTimesJson != null && bestTimesJson.isNotEmpty) {
+    bestTimes = json.decode(bestTimesJson);
+  }
+
+  // Update the best time for the current level.
+  final bestTimeInSeconds = bestTime.inSeconds;
+  if (!bestTimes.containsKey(level.toString()) || bestTimeInSeconds < bestTimes[level.toString()]) {
+    bestTimes[level.toString()] = bestTimeInSeconds;
+  }
+
+  // Save the best times back to shared preferences.
+  bestTimesJson = json.encode(bestTimes);
+  await prefs.setString('bestTimes', bestTimesJson);
 }
