@@ -1,6 +1,14 @@
-# memorytrainer
+# ⛓️ memorytrainer
 
-Brain Trainer : Flutter application
+![start page](https://github.com/netcaster1/memorytrainer/tree/main/images/Screenshot%202023-05-28%20211820.png)
+
+![memory page](https://github.com/netcaster1/memorytrainer/tree/main/images/Screenshot%202023-05-28%20211838.png)
+
+![recall page](https://github.com/netcaster1/memorytrainer/tree/main/images/Screenshot%202023-05-28%20211847.png)
+
+![result page](https://github.com/netcaster1/memorytrainer/tree/main/images/Screenshot%202023-05-28%20211858.png)
+
+##Brain Trainer : Flutter application
 
 ## Design and Idea
 Develop an Android app using Flutter. This app is designed to help practice brain memory.
@@ -11,12 +19,14 @@ The second screen is the level screen. Firstly, it randomly generates 40 two-dig
 
 The program allows users to choose to exit the program at any screen. Make the interface more beautiful. The user's score must be saved, and the next time the user can continue to challenge based on the level they won last time.
 
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Install
+cd memorytrainer
+flutter build apk --release
+upload to mobile and install
 
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+
+[![Star History Chart](https://api.star-history.com/svg?repos=netcaster1/memorytrainer&type=Timeline)](https://star-history.com/#netcaster1/memorytrainer&Date)
+
