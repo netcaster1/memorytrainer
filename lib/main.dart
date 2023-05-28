@@ -4,7 +4,55 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vibration/vibration.dart';
-import 'dart:convert';
+
+// 定义全局变量
+late LevelData levelData;
+
+class LevelData {
+  late SharedPreferences _prefs;
+  late Future initDone;
+
+  LevelData() {
+    initDone = _init();
+  }
+
+  Future<void> _init() async {
+    _prefs = await SharedPreferences.getInstance();
+
+    if (!_prefs.containsKey('level')) {
+      await _prefs.setInt('level', 1);
+    }
+    // if (!_prefs.containsKey('bestTime_1')) {
+    //   await _prefs.setInt('bestTime_1', 9999999);
+    // }
+  }
+
+  Future<int> getLastLevel() async {
+    return _prefs.getInt('level') ?? 1;
+  }
+
+  Future<void> setLastLevel(int level) async {
+    await _prefs.setInt('level', level);
+  }
+
+  Future<Duration?> getBestTime(int level) async {
+    final timeInMilliseconds = _prefs.getInt('bestTime_$level');
+    if (timeInMilliseconds != null) {
+      return Duration(milliseconds: timeInMilliseconds);
+    }
+    return null;
+  }
+
+  Future<void> setBestTime(int level, Duration time) async {
+    final bestTimeKey = 'bestTime_$level';
+    final bestTime = _prefs.getInt(bestTimeKey);
+
+    // If there is no saved best time, or if the new time is better, save it.
+    if (bestTime == null || time.inMilliseconds < bestTime) {
+      await _prefs.setInt(bestTimeKey, time.inMilliseconds);
+    }
+  }
+}
 
 void main() {
   runApp(const MyApp());
@@ -19,13 +67,27 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Memory Training', // The title of the app
-      theme: ThemeData(
-        primarySwatch: Colors.blue, // The primary color of the app
-      ),
-      home: const StartPage(), // The home page of the app
+    return FutureBuilder(
+      future: _initLevelData(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const CircularProgressIndicator(); // Show a loading indicator while waiting for level data
+        } else {
+          return MaterialApp(
+            title: 'Memory Training', // The title of the app
+            theme: ThemeData(
+              primarySwatch: Colors.blue, // The primary color of the app
+            ),
+            home: const StartPage(), // The home page of the app
+          );
+        }
+      },
     );
+  }
+
+  Future<void> _initLevelData() async {
+    levelData = LevelData();
+    await levelData._init();
   }
 }
 
@@ -59,27 +121,39 @@ class StartPage extends StatelessWidget {
             fit: BoxFit.cover,
           ),
         ),
-        child: FutureBuilder<Map<String, dynamic>>(
-          future: _getLevelDetails(),
+        child: FutureBuilder<int>(
+          future: levelData.getLastLevel(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const CircularProgressIndicator(); // Show a loading indicator while waiting for the last level
+              return const CircularProgressIndicator();
             } else {
-              Map<String, dynamic> levelDetails = snapshot.data!;
+              final lastLevel = snapshot.data ?? 1;
               return ListView.builder(
-                itemCount: levelDetails.keys.length,
+                itemCount: lastLevel,
                 itemBuilder: (context, index) {
                   int level = index + 1;
-                  Duration bestTime = levelDetails[level.toString()] != null
-                      ? Duration(milliseconds: levelDetails[level.toString()])
-                      : const Duration();
-                  return ListTile(
-                    title: ElevatedButton(
-                      child: Text(level == 1
-                          ? 'Start New Game'
-                          : 'Start Level $level - Best Time: ${bestTime.inMinutes} min ${bestTime.inSeconds % 60} sec'),
-                      onPressed: () => _startLevel(context, level),
-                    ),
+                  return FutureBuilder<Duration?>(
+                    future: levelData.getBestTime(level),
+                    builder: (context, snapshot) {
+                      String buttonText;
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        buttonText = 'Loading...';
+                      } else {
+                        final bestTime = snapshot.data;
+                        if (bestTime == null) {
+                          buttonText = 'Start Level $level';
+                        } else {
+                          buttonText =
+                              'Start Level $level - Best time: ${bestTime.inMinutes} min ${bestTime.inSeconds % 60} sec';
+                        }
+                      }
+                      return ListTile(
+                        title: ElevatedButton(
+                          child: Text(buttonText),
+                          onPressed: () => _startLevel(context, level),
+                        ),
+                      );
+                    },
                   );
                 },
               );
@@ -88,14 +162,6 @@ class StartPage extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  // This method gets the last level played and best time from SharedPreferences.
-  Future<Map<String, dynamic>> _getLevelDetails() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String levelDetailsStr = prefs.getString('levelDetails') ?? '{}';
-    Map<String, dynamic> levelDetails = jsonDecode(levelDetailsStr);
-    return levelDetails;
   }
 
   // This method starts the selected level.
@@ -395,10 +461,14 @@ class ResultsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
 
-    // If the user's input was perfect, vibrate the device.
+    // If the user's input was perfect, save the new best time and vibrate the device.
     if (accuracyIsPerfect) {
-      saveBestTime(level, timeElapsed).then((_) {
-        Vibration.vibrate();
+      levelData.getBestTime(level).then((bestTime) {
+        if (bestTime == null || timeElapsed < bestTime) {
+          levelData.setBestTime(level, timeElapsed).then((_) {
+            Vibration.vibrate();
+          });
+        }
       });
     }
 
@@ -490,27 +560,4 @@ class ResultsPage extends StatelessWidget {
       ),
     );
   }
-}
-
-Future<void> saveBestTime(int level, Duration bestTime) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-
-  // Retrieve all the best times from shared preferences.
-  String? bestTimesJson = prefs.getString('bestTimes');
-  Map<String, dynamic> bestTimes = {};
-
-  // If there are best times saved, load them into the map.
-  if (bestTimesJson != null && bestTimesJson.isNotEmpty) {
-    bestTimes = json.decode(bestTimesJson);
-  }
-
-  // Update the best time for the current level.
-  final bestTimeInSeconds = bestTime.inSeconds;
-  if (!bestTimes.containsKey(level.toString()) || bestTimeInSeconds < bestTimes[level.toString()]) {
-    bestTimes[level.toString()] = bestTimeInSeconds;
-  }
-
-  // Save the best times back to shared preferences.
-  bestTimesJson = json.encode(bestTimes);
-  await prefs.setString('bestTimes', bestTimesJson);
 }
