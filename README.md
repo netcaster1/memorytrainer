@@ -1,12 +1,12 @@
 # ⛓️ memorytrainer
 
-![start page](https://github.com/netcaster1/memorytrainer/tree/main/images/Screenshot%202023-05-28%20211820.png)
+![start page](./images/Screenshot%202023-05-28%20211820.png)
 
-![memory page](https://github.com/netcaster1/memorytrainer/tree/main/images/Screenshot%202023-05-28%20211838.png)
+![memory page](./images/Screenshot%202023-05-28%20211838.png)
 
-![recall page](https://github.com/netcaster1/memorytrainer/tree/main/images/Screenshot%202023-05-28%20211847.png)
+![recall page](./images/Screenshot%202023-05-28%20211847.png)
 
-![result page](https://github.com/netcaster1/memorytrainer/tree/main/images/Screenshot%202023-05-28%20211858.png)
+![result page](./images/Screenshot%202023-05-28%20211858.png)
 
 ##Brain Trainer : Flutter application
 
@@ -21,7 +21,9 @@ The program allows users to choose to exit the program at any screen. Make the i
 
 ## Install
 cd memorytrainer
+
 flutter build apk --release
+
 upload to mobile and install
 
 For help getting started with Flutter development, view the
