@@ -7,31 +7,35 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vibration/vibration.dart';
 
-// void main() {
-//   runApp(const MaterialApp(
-//     title: 'Memory Trainer',
-//     home: HomePage(),
-//   ));
-// }
 void main() {
   runApp(const MyApp());
 }
 
+// This is the main class of the app.
+// It is a stateless widget that returns a MaterialApp.
+// The MaterialApp has a title, theme, and home.
+// The home is a StartPage.
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Memory Training',
+      title: 'Memory Training', // The title of the app
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.blue, // The primary color of the app
       ),
-      home: const StartPage(),
+      home: const StartPage(), // The home page of the app
     );
   }
 }
 
+// This is the start page of the app.
+// It is a stateless widget that returns a Scaffold.
+// The Scaffold has an AppBar and a body.
+// The AppBar has a title and an exit button.
+// The body is a Container with an image and a FutureBuilder.
+// The FutureBuilder gets the last level played and builds a ListView of levels.
 class StartPage extends StatelessWidget {
   const StartPage({Key? key}) : super(key: key);
 
@@ -39,11 +43,11 @@ class StartPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Memory Training'),
+        title: const Text('Memory Training'), // The title of the app
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.exit_to_app),
+            icon: const Icon(Icons.exit_to_app), // The exit button
             onPressed: () => SystemNavigator.pop(),
           ),
         ],
@@ -52,7 +56,7 @@ class StartPage extends StatelessWidget {
         alignment: Alignment.center,
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("images/brain.png"),
+            image: AssetImage("images/brain.png"), // The background image
             fit: BoxFit.cover,
           ),
         ),
@@ -60,7 +64,7 @@ class StartPage extends StatelessWidget {
           future: _getLastLevel(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const CircularProgressIndicator();
+              return const CircularProgressIndicator(); // Show a loading indicator while waiting for the last level
             } else {
               final lastLevel = snapshot.data ?? 1;
               return ListView.builder(
@@ -69,7 +73,7 @@ class StartPage extends StatelessWidget {
                   int level = index + 1;
                   return ListTile(
                     title: ElevatedButton(
-                      child: Text(level == 1 ? 'Start New Game' : 'Start Level $level'),
+                      child: Text(level == 1 ? 'Start New Game' : 'Start Level $level'), // The button text
                       onPressed: () => _showConfirmDialog(context, level, lastLevel),
                     ),
                   );
@@ -82,11 +86,14 @@ class StartPage extends StatelessWidget {
     );
   }
 
+  // This method gets the last level played from SharedPreferences.
   Future<int?> _getLastLevel() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getInt('level');
   }
 
+  // This method shows a confirmation dialog if the selected level is not the last level played.
+  // If the selected level is the last level played, it starts the level directly.
   void _showConfirmDialog(BuildContext context, int level, int lastLevel) {
     if (level < lastLevel) {
       showDialog(
@@ -116,28 +123,44 @@ class StartPage extends StatelessWidget {
     }
   }
 
+  // This method starts the selected level.
   void _startLevel(BuildContext context, int level) {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         fullscreenDialog: true,
-        builder: (context) => HomePage(level: level),
+        builder: (context) => HomePage(level: level), // The selected level is passed to the HomePage
       ),
     );
   }
 }
 
+// This class represents the home page of the game and is a StatefulWidget.
 class HomePage extends StatefulWidget {
-  final int level;
+  final int level; // The level of the game.
 
   const HomePage({Key? key, this.level = 1}) : super(key: key);
 
   @override
   // ignore: library_private_types_in_public_api
-  _HomePageState createState() => _HomePageState();
+  _HomePageState createState() => _HomePageState(); // Returns the state of the home page.
 }
 
+/*
+ this class represents the state of the home page of the game and is a State.
+*/
 class _HomePageState extends State<HomePage> {
+  // These variables are used to manage the game state and user input.
+  // controllers: a list of TextEditingController objects used to manage user input.
+  // originalNumbers: a list of strings representing the original numbers displayed to the user.
+  // stopwatch: a Stopwatch object used to measure the time taken by the user to input the numbers.
+  // timer: a Timer object used to update the UI every second.
+  // inputEnabled: a boolean value indicating whether user input is enabled or not.
+  // showUserInput: a boolean value indicating whether the user input should be displayed or not.
+  // rng: a Random object used to generate random numbers.
+  // accuracyIsPerfect: a boolean value indicating whether the user input is perfect or not.
+  // showOriginalNumbers: a boolean value indicating whether the original numbers should be displayed or not.
+  // level: an integer value representing the current level of the game.
   List<TextEditingController> controllers = [];
   List<String> originalNumbers = [];
   Stopwatch stopwatch = Stopwatch();
@@ -163,18 +186,25 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
+  // This method starts the game with the given level.
   void startGame(int level) {
-    int numCount = 2 + 2 * (level - 1);
+    // Calculate the number of numbers to be displayed based on the level.
+    int numCount = 20 + 20 * (level - 1);
+    // Generate a list of random numbers as strings and store them in originalNumbers.
     originalNumbers = List<String>.generate(numCount, (index) {
       int randomNum = rng.nextInt(100);
       return randomNum < 10 ? '0$randomNum' : randomNum.toString();
     });
+    // Generate a list of TextEditingController objects to manage user input.
     controllers = List<TextEditingController>.generate(numCount, (index) => TextEditingController());
+    // Reset and start the stopwatch to measure the time taken by the user to input the numbers.
     stopwatch.reset();
     stopwatch.start();
+    // Start a timer to update the UI every second.
     timer = Timer.periodic(const Duration(seconds: 1), (timer) => setState(() {}));
   }
 
+  // This method calculates the text size based on the screen width.
   double getTextSize(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     return screenWidth * 0.04;
@@ -315,6 +345,12 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // This function is called when the user presses the "OK" button to submit their input.
+  // It stops the stopwatch and cancels the timer.
+  // If input is not enabled, it enables input and hides the original numbers.
+  // If input is enabled, it retrieves the user's input and calculates their accuracy.
+  // It then navigates to the ResultsPage and passes the necessary data.
+  // After returning from the ResultsPage, it clears the input fields and increments the level.
   void showResults(BuildContext context) {
     stopwatch.stop();
     timer.cancel();
@@ -349,6 +385,10 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // This function calculates the accuracy of the user's input by comparing it to the original numbers.
+  // It takes in two lists of strings: the original numbers and the user's input.
+  // It iterates through each element of the lists and counts the number of matches.
+  // It then returns the ratio of matches to the length of the original list as a double.
   double calculateAccuracy(List<String> original, List<String> user) {
     int numMatches = 0;
     for (int i = 0; i < original.length; i++) {
@@ -360,13 +400,14 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
+// This class represents the results page that is displayed after the user completes a level.
 class ResultsPage extends StatelessWidget {
-  final List<String> originalNumbers;
-  final List<String> userNumbers;
-  final Duration timeElapsed;
-  final double accuracy;
-  final bool accuracyIsPerfect;
-  final int level;
+  final List<String> originalNumbers; // The original numbers that were displayed to the user.
+  final List<String> userNumbers; // The numbers that the user entered.
+  final Duration timeElapsed; // The time taken by the user to enter the numbers.
+  final double accuracy; // The accuracy of the user's input.
+  final bool accuracyIsPerfect; // A flag indicating whether the user's input was perfect.
+  final int level; // The current level of the game.
 
   const ResultsPage(
       this.originalNumbers, this.userNumbers, this.timeElapsed, this.accuracy, this.accuracyIsPerfect, this.level,
@@ -377,10 +418,11 @@ class ResultsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
 
+    // If the user's input was perfect, vibrate the device.
     if (accuracyIsPerfect) {
       Vibration.vibrate();
     }
-    
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -389,6 +431,7 @@ class ResultsPage extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.exit_to_app),
             onPressed: () async {
+              // Save the user's progress and exit the app.
               SharedPreferences prefs = await SharedPreferences.getInstance();
               await prefs.setInt('level', accuracyIsPerfect ? level + 1 : level);
               SystemNavigator.pop();
@@ -416,8 +459,10 @@ class ResultsPage extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
+                    // Display the time taken by the user to enter the numbers.
                     Text('Time taken: ${timeElapsed.inMinutes} min ${timeElapsed.inSeconds % 60} sec',
                         style: TextStyle(fontSize: screenWidth * 0.05)),
+                    // Display the accuracy of the user's input.
                     Text('Accuracy: ${(accuracy * 100).toStringAsFixed(2)}%',
                         style: TextStyle(fontSize: screenWidth * 0.05)),
                     SizedBox(
@@ -425,17 +470,21 @@ class ResultsPage extends StatelessWidget {
                       child: SingleChildScrollView(
                         child: Column(
                           children: [
+                            // Display the numbers entered by the user.
                             Text('Your numbers:', style: TextStyle(fontSize: screenWidth * 0.05)),
                             Text(userNumbers.join(' '), style: TextStyle(fontSize: screenWidth * 0.04)),
+                            // Display the original numbers.
                             Text('Original numbers:', style: TextStyle(fontSize: screenWidth * 0.05)),
                             Text(originalNumbers.join(' '), style: TextStyle(fontSize: screenWidth * 0.04)),
                           ],
                         ),
                       ),
                     ),
+                    // Display a button to either move to the next level or try again.
                     ElevatedButton(
                       onPressed: () {
                         if (accuracyIsPerfect) {
+                          // If the user's input was perfect, move to the next level.
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
@@ -444,6 +493,7 @@ class ResultsPage extends StatelessWidget {
                             ),
                           );
                         } else {
+                          // If the user's input was not perfect, try again at the same level.
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
