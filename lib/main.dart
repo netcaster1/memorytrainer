@@ -68,7 +68,67 @@ class LevelData {
 }
 
 void main() {
-  runApp(const MyApp());
+  runApp(const MaterialApp(
+    home: GameSelectPage(),
+  ));
+}
+
+class GameSelectPage extends StatelessWidget {
+  const GameSelectPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Select Game'),
+      ),
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("images/brain4.png"), // The background image
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(200, 50), // Adjust minimum size of button
+                  padding: const EdgeInsets.symmetric(horizontal: 16), // Ajdust padding of button
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SchulteGridApp()),
+                  );
+                },
+                child: const Text('Scaffold'),
+              ),
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.05, // Or any value you want to give
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(200, 50), // Adjust minimum size of button
+                  padding: const EdgeInsets.symmetric(horizontal: 16), // Ajdust padding of button
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const MyApp()),
+                  );
+                },
+                child: const Text('Endless Number'),
+              ),
+              // Add more game here...
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 // This is the main class of the app.
@@ -588,7 +648,16 @@ class ResultsPage extends StatelessWidget {
                             MaterialPageRoute(builder: (context) => const StartPage()),
                           );
                         },
-                        child: const Text('Back to StartPage'),
+                        child: const Text('Back to Level Select Page'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const GameSelectPage()),
+                          );
+                        },
+                        child: const Text('Back to Game Select Page'),
                       ),
                     ],
                   ),
@@ -596,6 +665,182 @@ class ResultsPage extends StatelessWidget {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class SchulteGridApp extends StatelessWidget {
+  const SchulteGridApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      home: SchulteGrid(),
+    );
+  }
+}
+
+class SchulteGrid extends StatefulWidget {
+  const SchulteGrid({Key? key}) : super(key: key);
+
+  @override
+  // ignore: library_private_types_in_public_api
+  _SchulteGridState createState() => _SchulteGridState();
+}
+
+class _SchulteGridState extends State<SchulteGrid> {
+  List<int> numbers = [];
+  int currentNumber = 1;
+  int counter = 0;
+  int highScore = 0;
+  Stopwatch stopwatch = Stopwatch();
+  Timer? timer;
+
+  @override
+  void initState() {
+    super.initState();
+    // initialize numbers list with numbers from 1 to 25 in random order
+    numbers = List<int>.generate(25, (i) => i + 1)..shuffle();
+    getHighScore();
+    startTimer();
+  }
+
+  void startTimer() {
+    stopwatch.start();
+    timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {});
+    });
+  }
+
+  void stopTimer() {
+    stopwatch.stop();
+    timer?.cancel();
+  }
+
+  void resetTimer() {
+    stopwatch.reset();
+    startTimer();
+  }
+
+  void getHighScore() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    highScore = prefs.getInt('sh_highScore') ?? 0;
+    setState(() {});
+  }
+
+  void setHighScore() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('sh_highScore', stopwatch.elapsed.inSeconds);
+  }
+
+  void onTap(int index) {
+    if (numbers[index] == currentNumber) {
+      Vibration.vibrate();
+      setState(() {
+        numbers[index] = 0; // hidden number
+        currentNumber++;
+        if (currentNumber > 25) {
+          // reset game
+          stopTimer();
+          if (highScore == 0 || stopwatch.elapsed.inSeconds < highScore) {
+            setHighScore();
+            highScore = stopwatch.elapsed.inSeconds;
+          }
+          numbers = List<int>.generate(25, (i) => i + 1)..shuffle();
+          currentNumber = 1;
+          resetTimer();
+        }
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    double fontSize = MediaQuery.of(context).size.width * 0.05;
+    double buttonWidth = MediaQuery.of(context).size.width * 0.8;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Scaffold Game'),
+      ),
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("images/brain5.png"),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Column(
+          children: <Widget>[
+            Text(
+              'Current Number: $currentNumber',
+              style: TextStyle(fontSize: fontSize),
+            ),
+            Text(
+              'Timer: ${stopwatch.elapsed.inSeconds}秒',
+              style: TextStyle(fontSize: fontSize),
+            ),
+            Text(
+              'HighScore: $highScore秒',
+              style: TextStyle(fontSize: fontSize),
+            ),
+            Expanded(
+              child: GridView.builder(
+                padding: const EdgeInsets.all(20.0),
+                itemCount: numbers.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 5, mainAxisSpacing: 10.0, crossAxisSpacing: 10.0),
+                itemBuilder: (context, index) {
+                  return InkWell(
+                    onTap: () => onTap(index),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(
+                          color: Colors.blue,
+                          width: 2.0,
+                        ),
+                      ),
+                      child: Center(
+                        child: numbers[index] != 0
+                            ? Text(
+                                '${numbers[index]}',
+                                style: const TextStyle(
+                                  fontSize: 24.0,
+                                  shadows: <Shadow>[
+                                    Shadow(
+                                      offset: Offset(1.5, 1.5),
+                                      blurRadius: 2.0,
+                                      color: Colors.grey,
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : null, // hide number
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            SizedBox(
+              width: buttonWidth,
+              child: ElevatedButton(
+                child: Text(
+                  'Back',
+                  style: TextStyle(fontSize: fontSize),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const GameSelectPage()),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
