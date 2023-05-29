@@ -104,7 +104,7 @@ class GameSelectPage extends StatelessWidget {
                     MaterialPageRoute(builder: (context) => const SchulteGridApp()),
                   );
                 },
-                child: const Text('Scaffold'),
+                child: const Text('Schulte Grid'),
               ),
               SizedBox(
                 height: MediaQuery.of(context).size.height * 0.05, // Or any value you want to give
@@ -763,7 +763,7 @@ class _SchulteGridState extends State<SchulteGrid> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Scaffold Game'),
+        title: const Text('Schulte Grid'),
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -779,11 +779,11 @@ class _SchulteGridState extends State<SchulteGrid> {
               style: TextStyle(fontSize: fontSize),
             ),
             Text(
-              'Timer: ${stopwatch.elapsed.inSeconds}秒',
+              'Timer: ${stopwatch.elapsed.inSeconds} sec',
               style: TextStyle(fontSize: fontSize),
             ),
             Text(
-              'HighScore: $highScore秒',
+              'HighScore: $highScore sec',
               style: TextStyle(fontSize: fontSize),
             ),
             Expanded(
