@@ -1,4 +1,4 @@
-# ⛓️ memorytrainer(brain trainer made by Ray Sheng)
+# ⛓️ Memory Trainer
 
 ![start page](./images/Screenshot%202023-05-28%20211820.png)
 
@@ -8,7 +8,7 @@
 
 ![result page](./images/Screenshot%202023-05-28%20211858.png)
 
-##Brain Trainer : Flutter application
+##Brain Trainer : Flutter application made by Ray Sheng
 
 ## Design and Idea
 Develop an Android app using Flutter. This app is designed to help practice brain memory.
