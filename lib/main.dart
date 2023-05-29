@@ -213,7 +213,6 @@ class _HomePageState extends State<HomePage> {
   bool accuracyIsPerfect = false;
   bool showOriginalNumbers = true;
   int level = 1;
-  
 
   @override
   void initState() {
@@ -278,9 +277,9 @@ class _HomePageState extends State<HomePage> {
             image: DecorationImage(
               image: const AssetImage("images/brain2.png"),
               fit: BoxFit.cover,
-               colorFilter: ColorFilter.mode(
+              colorFilter: ColorFilter.mode(
                 Colors.black.withOpacity(0.5),
-                  BlendMode.dstATop,
+                BlendMode.dstATop,
               ),
             ),
           ),
@@ -381,8 +380,8 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
                           style: TextStyle(
-                            backgroundColor: Colors.white, 
-                            fontSize: MediaQuery.of(context).size.width * 0.04,                           
+                            backgroundColor: Colors.white,
+                            fontSize: MediaQuery.of(context).size.width * 0.04,
                             shadows: [
                               Shadow(
                                 color: Colors.grey.withOpacity(0.5),
@@ -569,6 +568,15 @@ class ResultsPage extends StatelessWidget {
                           }
                         },
                         child: Text(accuracyIsPerfect ? 'Next level' : 'Try again'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const StartPage()),
+                          );
+                        },
+                        child: const Text('Back to StartPage'),
                       ),
                     ],
                   ),
