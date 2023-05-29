@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vibration/vibration.dart';
+// import 'package:auto_size_text_field/auto_size_text_field.dart';
 
 // 定义全局变量
 late LevelData levelData;
@@ -212,6 +213,7 @@ class _HomePageState extends State<HomePage> {
   bool accuracyIsPerfect = false;
   bool showOriginalNumbers = true;
   int level = 1;
+  
 
   @override
   void initState() {
@@ -255,131 +257,146 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: const Text('Memory Training'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.exit_to_app),
-            onPressed: () async {
-              SystemNavigator.pop();
-            },
-          ),
-        ],
-      ),
-      body: Container(
-        alignment: Alignment.center,
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage("images/brain2.png"),
-            fit: BoxFit.cover,
-          ),
+    return WillPopScope(
+      onWillPop: () async => false, // Disable the back button.
+      child: Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          title: const Text('Memory Training'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.exit_to_app),
+              onPressed: () async {
+                SystemNavigator.pop();
+              },
+            ),
+          ],
         ),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      'Level: $level',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      'Time: ${stopwatch.elapsed.inMinutes} min ${stopwatch.elapsed.inSeconds % 60} sec',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
+        body: Container(
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: const AssetImage("images/brain2.png"),
+              fit: BoxFit.cover,
+               colorFilter: ColorFilter.mode(
+                Colors.black.withOpacity(0.5),
+                  BlendMode.dstATop,
               ),
-              if (showOriginalNumbers)
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.6,
-                  child: GridView.count(
-                    shrinkWrap: true,
-                    crossAxisCount: 8,
-                    childAspectRatio: 3,
-                    crossAxisSpacing: 5,
-                    mainAxisSpacing: 5,
-                    children: originalNumbers
-                        .map((number) => Container(
-                            color: Colors.black.withOpacity(1),
-                            child: Text(number, style: TextStyle(color: Colors.white, fontSize: getTextSize(context)))))
-                        .toList(),
+            ),
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Level: $level',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        'Time: ${stopwatch.elapsed.inMinutes} min ${stopwatch.elapsed.inSeconds % 60} sec',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ElevatedButton(
-                onPressed: () => showResults(context),
-                child: const Text('OK'),
-              ),
-              if (showUserInput)
-                GridView.count(
-                  crossAxisCount: 8,
-                  shrinkWrap: true,
-                  children: List.generate(controllers.length, (index) {
-                    return TextField(
-                      controller: controllers[index],
-                      textInputAction: TextInputAction.next,
-                      onChanged: (text) {
-                        if (text.length >= 2) {
-                          FocusScope.of(context).nextFocus();
-                        }
-                      },
-                      keyboardType: TextInputType.number,
-                      maxLength: 2,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide.none,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                        counterText: '',
-                        contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-                        errorBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(color: Colors.red, width: 2),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        focusedErrorBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(color: Colors.red, width: 2),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(color: Colors.grey, width: 1),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(color: Colors.blue, width: 2),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      style: TextStyle(
-                        backgroundColor: Colors.white,
-                        shadows: [
-                          Shadow(
-                            color: Colors.grey.withOpacity(0.5),
-                            offset: const Offset(0, 3),
-                            blurRadius: 5,
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.05, // Or any value you want to give
                 ),
-            ],
+                if (showOriginalNumbers)
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.6,
+                    child: GridView.count(
+                      shrinkWrap: true,
+                      crossAxisCount: 8,
+                      childAspectRatio: 3,
+                      crossAxisSpacing: 5,
+                      mainAxisSpacing: 5,
+                      children: originalNumbers
+                          .map((number) => Container(
+                              color: Colors.black.withOpacity(1),
+                              child:
+                                  Text(number, style: TextStyle(color: Colors.white, fontSize: getTextSize(context)))))
+                          .toList(),
+                    ),
+                  ),
+                ElevatedButton(
+                  onPressed: () => showResults(context),
+                  child: const Text('OK'),
+                ),
+                if (showUserInput)
+                  Container(
+                    margin: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width * 0.05),
+                    child: GridView.count(
+                      crossAxisCount: 8,
+                      shrinkWrap: true,
+                      children: List.generate(controllers.length, (index) {
+                        return TextField(
+                          controller: controllers[index],
+                          textInputAction: TextInputAction.next,
+                          onChanged: (text) {
+                            if (text.length >= 2) {
+                              FocusScope.of(context).nextFocus();
+                            }
+                          },
+                          keyboardType: TextInputType.number,
+                          maxLength: 2,
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(
+                              borderSide: BorderSide.none,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                            counterText: '',
+                            contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                            errorBorder: OutlineInputBorder(
+                              borderSide: const BorderSide(color: Colors.red, width: 2),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            focusedErrorBorder: OutlineInputBorder(
+                              borderSide: const BorderSide(color: Colors.red, width: 2),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: const BorderSide(color: Colors.grey, width: 1),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: const BorderSide(color: Colors.blue, width: 2),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          style: TextStyle(
+                            backgroundColor: Colors.white, 
+                            fontSize: MediaQuery.of(context).size.width * 0.04,                           
+                            shadows: [
+                              Shadow(
+                                color: Colors.grey.withOpacity(0.5),
+                                offset: const Offset(0, 3),
+                                blurRadius: 5,
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -472,89 +489,92 @@ class ResultsPage extends StatelessWidget {
       });
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: const Text('Results'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.exit_to_app),
-            onPressed: () async {
-              SystemNavigator.pop();
-            },
-          ),
-        ],
-      ),
-      body: Container(
-        alignment: Alignment.center,
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage("images/brain3.png"),
-            fit: BoxFit.cover,
-          ),
+    return WillPopScope(
+      onWillPop: () async => false,
+      child: Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          title: const Text('Results'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.exit_to_app),
+              onPressed: () async {
+                SystemNavigator.pop();
+              },
+            ),
+          ],
         ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  color: Colors.white.withOpacity(0.8),
-                ),
-                child: Column(
-                  children: [
-                    // Display the time taken by the user to enter the numbers.
-                    Text('Time taken: ${timeElapsed.inMinutes} min ${timeElapsed.inSeconds % 60} sec',
-                        style: TextStyle(fontSize: screenWidth * 0.05)),
-                    // Display the accuracy of the user's input.
-                    Text('Accuracy: ${(accuracy * 100).toStringAsFixed(2)}%',
-                        style: TextStyle(fontSize: screenWidth * 0.05)),
-                    SizedBox(
-                      height: 200, // adjust this value according to your needs
-                      child: SingleChildScrollView(
-                        child: Column(
-                          children: [
-                            // Display the numbers entered by the user.
-                            Text('Your numbers:', style: TextStyle(fontSize: screenWidth * 0.05)),
-                            Text(userNumbers.join(' '), style: TextStyle(fontSize: screenWidth * 0.04)),
-                            // Display the original numbers.
-                            Text('Original numbers:', style: TextStyle(fontSize: screenWidth * 0.05)),
-                            Text(originalNumbers.join(' '), style: TextStyle(fontSize: screenWidth * 0.04)),
-                          ],
+        body: Container(
+          alignment: Alignment.center,
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage("images/brain3.png"),
+              fit: BoxFit.cover,
+            ),
+          ),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    color: Colors.white.withOpacity(0.8),
+                  ),
+                  child: Column(
+                    children: [
+                      // Display the time taken by the user to enter the numbers.
+                      Text('Time taken: ${timeElapsed.inMinutes} min ${timeElapsed.inSeconds % 60} sec',
+                          style: TextStyle(fontSize: screenWidth * 0.05)),
+                      // Display the accuracy of the user's input.
+                      Text('Accuracy: ${(accuracy * 100).toStringAsFixed(2)}%',
+                          style: TextStyle(fontSize: screenWidth * 0.05)),
+                      SizedBox(
+                        height: 200, // adjust this value according to your needs
+                        child: SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              // Display the numbers entered by the user.
+                              Text('Your numbers:', style: TextStyle(fontSize: screenWidth * 0.05)),
+                              Text(userNumbers.join(' '), style: TextStyle(fontSize: screenWidth * 0.04)),
+                              // Display the original numbers.
+                              Text('Original numbers:', style: TextStyle(fontSize: screenWidth * 0.05)),
+                              Text(originalNumbers.join(' '), style: TextStyle(fontSize: screenWidth * 0.04)),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                    // Display a button to either move to the next level or try again.
-                    ElevatedButton(
-                      onPressed: () {
-                        if (accuracyIsPerfect) {
-                          // If the user's input was perfect, move to the next level.
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              fullscreenDialog: true,
-                              builder: (context) => HomePage(level: level + 1),
-                            ),
-                          );
-                        } else {
-                          // If the user's input was not perfect, try again at the same level.
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              fullscreenDialog: true, // 设置为 true，隐藏返回按钮
-                              builder: (context) => HomePage(level: level),
-                            ),
-                          );
-                        }
-                      },
-                      child: Text(accuracyIsPerfect ? 'Next level' : 'Try again'),
-                    ),
-                  ],
+                      // Display a button to either move to the next level or try again.
+                      ElevatedButton(
+                        onPressed: () {
+                          if (accuracyIsPerfect) {
+                            // If the user's input was perfect, move to the next level.
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                fullscreenDialog: true,
+                                builder: (context) => HomePage(level: level + 1),
+                              ),
+                            );
+                          } else {
+                            // If the user's input was not perfect, try again at the same level.
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                fullscreenDialog: true, // 设置为 true，隐藏返回按钮
+                                builder: (context) => HomePage(level: level),
+                              ),
+                            );
+                          }
+                        },
+                        child: Text(accuracyIsPerfect ? 'Next level' : 'Try again'),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

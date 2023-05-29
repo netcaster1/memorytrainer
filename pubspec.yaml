@@ -38,12 +38,14 @@ dependencies:
   shared_preferences: ^2.1.1
   intl: ^0.18.1
   vibration: ^1.7.7
+  auto_size_text_field: ^2.2.1
 
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_launcher_icons: "^0.13.0"  
+
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
