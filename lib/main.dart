@@ -48,6 +48,14 @@ class LevelData {
     await _prefs.setInt('level', level);
   }
 
+  Future<int> getHighScore() async {
+    return _prefs.getInt('sh_highScore') ?? 0;
+  }
+
+  Future<void> setHighScore(int highscore) async {
+    await _prefs.setInt('sh_highScore', highscore);
+  }
+
   Future<Duration?> getBestTime(int level) async {
     final timeInMilliseconds = _prefs.getInt('bestTime_$level');
     if (timeInMilliseconds != null) {
@@ -676,9 +684,27 @@ class SchulteGridApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: SchulteGrid(),
+    return FutureBuilder(
+      future: _initLevelData(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const CircularProgressIndicator(); // Show a loading indicator while waiting for level data
+        } else {
+          return MaterialApp(
+            title: 'Schulte Grid', // The title of the app
+            theme: ThemeData(
+              primarySwatch: Colors.blue, // The primary color of the app
+            ),
+            home: const SchulteGrid(), // The home page of the app
+          );
+        }
+      },
     );
+  }
+
+  Future<void> _initLevelData() async {
+    levelData = LevelData();
+    await levelData._init();
   }
 }
 
@@ -725,28 +751,35 @@ class _SchulteGridState extends State<SchulteGrid> {
   }
 
   void getHighScore() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    highScore = prefs.getInt('sh_highScore') ?? 0;
-    setState(() {});
+    levelData.getHighScore().then((highScore) {
+      setState(() {
+        this.highScore = highScore;
+      });
+    });
   }
 
   void setHighScore() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('sh_highScore', stopwatch.elapsed.inSeconds);
+    int currentScore = stopwatch.elapsed.inSeconds;
+    if (highScore ==0 || currentScore < highScore) {
+      levelData.setHighScore(currentScore).then((_) {
+        setState(() {
+          highScore = currentScore;
+        });
+      });
+    }
   }
 
   void onTap(int index) {
     if (numbers[index] == currentNumber) {
       Vibration.vibrate(duration: 80);
       setState(() {
-        numbers[index] = 0; // hidden number
+        // numbers[index] = 0; // hidden number
         currentNumber++;
         if (currentNumber > 25) {
           // reset game
           stopTimer();
-          if (highScore == 0 || stopwatch.elapsed.inSeconds < highScore) {
+          if (highScore ==0 || stopwatch.elapsed.inSeconds < highScore) {
             setHighScore();
-            highScore = stopwatch.elapsed.inSeconds;
           }
           numbers = List<int>.generate(25, (i) => i + 1)..shuffle();
           currentNumber = 1;
@@ -760,8 +793,6 @@ class _SchulteGridState extends State<SchulteGrid> {
   Widget build(BuildContext context) {
     double fontSize = MediaQuery.of(context).size.width * 0.05;
     double buttonWidth = MediaQuery.of(context).size.width * 0.8;
-//    double screenSize = MediaQuery.of(context).size.shortestSide;
-//    double itemSize = (screenSize - 20.0 - (4 * 10.0)) / 5.0;
 
     return Scaffold(
       appBar: AppBar(
