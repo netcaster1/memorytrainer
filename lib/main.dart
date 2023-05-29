@@ -737,7 +737,7 @@ class _SchulteGridState extends State<SchulteGrid> {
 
   void onTap(int index) {
     if (numbers[index] == currentNumber) {
-      Vibration.vibrate();
+      Vibration.vibrate(duration: 80);
       setState(() {
         numbers[index] = 0; // hidden number
         currentNumber++;
