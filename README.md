@@ -1,4 +1,4 @@
-# ⛓️ memorytrainer
+# ⛓️ memorytrainer(brain trainer made by Ray Sheng)
 
 ![start page](./images/Screenshot%202023-05-28%20211820.png)
 
