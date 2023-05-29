@@ -760,87 +760,109 @@ class _SchulteGridState extends State<SchulteGrid> {
   Widget build(BuildContext context) {
     double fontSize = MediaQuery.of(context).size.width * 0.05;
     double buttonWidth = MediaQuery.of(context).size.width * 0.8;
+//    double screenSize = MediaQuery.of(context).size.shortestSide;
+//    double itemSize = (screenSize - 20.0 - (4 * 10.0)) / 5.0;
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text('Schulte Grid'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.exit_to_app),
+            onPressed: () async {
+              SystemNavigator.pop();
+            },
+          ),
+        ],
       ),
       body: Container(
+        alignment: Alignment.center,
         decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage("images/brain5.png"),
             fit: BoxFit.cover,
           ),
         ),
-        child: Column(
-          children: <Widget>[
-            Text(
-              'Current Number: $currentNumber',
-              style: TextStyle(fontSize: fontSize),
-            ),
-            Text(
-              'Timer: ${stopwatch.elapsed.inSeconds} sec',
-              style: TextStyle(fontSize: fontSize),
-            ),
-            Text(
-              'HighScore: $highScore sec',
-              style: TextStyle(fontSize: fontSize),
-            ),
-            Expanded(
-              child: GridView.builder(
-                padding: const EdgeInsets.all(20.0),
-                itemCount: numbers.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 5, mainAxisSpacing: 10.0, crossAxisSpacing: 10.0),
-                itemBuilder: (context, index) {
-                  return InkWell(
-                    onTap: () => onTap(index),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(
-                          color: Colors.blue,
-                          width: 2.0,
-                        ),
-                      ),
-                      child: Center(
-                        child: numbers[index] != 0
-                            ? Text(
-                                '${numbers[index]}',
-                                style: const TextStyle(
-                                  fontSize: 24.0,
-                                  shadows: <Shadow>[
-                                    Shadow(
-                                      offset: Offset(1.5, 1.5),
-                                      blurRadius: 2.0,
-                                      color: Colors.grey,
-                                    ),
-                                  ],
-                                ),
-                              )
-                            : null, // hide number
-                      ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Text(
+                'Current Number: $currentNumber',
+                style: TextStyle(fontSize: fontSize),
+              ),
+              Text(
+                'Timer: ${stopwatch.elapsed.inSeconds} sec',
+                style: TextStyle(fontSize: fontSize),
+              ),
+              Text(
+                'HighScore: $highScore sec',
+                style: TextStyle(fontSize: fontSize),
+              ),
+              Expanded(
+                child: AspectRatio(
+                  aspectRatio: 1.0,
+                  child: GridView.builder(
+                    padding: const EdgeInsets.all(20.0),
+                    itemCount: numbers.length,
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 5,
+                      mainAxisSpacing: 10.0,
+                      crossAxisSpacing: 10.0,
+                      childAspectRatio: 1.0,
                     ),
-                  );
-                },
-              ),
-            ),
-            SizedBox(
-              width: buttonWidth,
-              child: ElevatedButton(
-                child: Text(
-                  'Back',
-                  style: TextStyle(fontSize: fontSize),
+                    itemBuilder: (context, index) {
+                      return InkWell(
+                        onTap: () => onTap(index),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            border: Border.all(
+                              color: Colors.blue,
+                              width: 2.0,
+                            ),
+                          ),
+                          child: Center(
+                            child: numbers[index] != 0
+                                ? Text(
+                                    '${numbers[index]}',
+                                    style: const TextStyle(
+                                      fontSize: 24.0,
+                                      shadows: <Shadow>[
+                                        Shadow(
+                                          offset: Offset(1.5, 1.5),
+                                          blurRadius: 2.0,
+                                          color: Colors.grey,
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                : null, // hide number
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const GameSelectPage()),
-                  );
-                },
               ),
-            ),
-          ],
+              SizedBox(
+                width: buttonWidth,
+                child: ElevatedButton(
+                  child: Text(
+                    'Back',
+                    style: TextStyle(fontSize: fontSize),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const GameSelectPage()),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
