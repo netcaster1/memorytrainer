@@ -761,7 +761,7 @@ class _SchulteGridState extends State<SchulteGrid> {
 
   void setHighScore() async {
     int currentScore = stopwatch.elapsed.inSeconds;
-    if (highScore ==0 || currentScore < highScore) {
+    if (highScore == 0 || currentScore < highScore) {
       levelData.setHighScore(currentScore).then((_) {
         setState(() {
           highScore = currentScore;
@@ -770,16 +770,22 @@ class _SchulteGridState extends State<SchulteGrid> {
     }
   }
 
+  Future<void> vibrate() async {
+    await Future.delayed(const Duration(milliseconds: 50));
+    Vibration.vibrate(duration: 50);
+  }
+
   void onTap(int index) {
     if (numbers[index] == currentNumber) {
       // Vibration.vibrate(duration: 50);
+      vibrate();
       setState(() {
         // numbers[index] = 0; // hidden number
         currentNumber++;
         if (currentNumber > 25) {
           // reset game
           stopTimer();
-          if (highScore ==0 || stopwatch.elapsed.inSeconds < highScore) {
+          if (highScore == 0 || stopwatch.elapsed.inSeconds < highScore) {
             setHighScore();
           }
           numbers = List<int>.generate(25, (i) => i + 1)..shuffle();
