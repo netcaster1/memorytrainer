@@ -629,6 +629,7 @@ class ResultsPage extends StatelessWidget {
                         onPressed: () {
                           if (accuracyIsPerfect) {
                             // If the user's input was perfect, move to the next level.
+                            levelData.setLastLevel(level + 1);
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
@@ -771,7 +772,7 @@ class _SchulteGridState extends State<SchulteGrid> {
 
   void onTap(int index) {
     if (numbers[index] == currentNumber) {
-      Vibration.vibrate(duration: 50);
+      // Vibration.vibrate(duration: 50);
       setState(() {
         // numbers[index] = 0; // hidden number
         currentNumber++;
